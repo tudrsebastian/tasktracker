@@ -1,0 +1,43 @@
+image: node
+
+cache:
+  paths:
+    - node_modules
+
+stages:
+  - lint client
+  - lint server
+  - testing
+
+EsLint web-client:
+  stage: lint client
+  script:
+    - npm i
+    - npm run web-client-lint
+  rules:
+    - changes:
+        - packages/web-client/*
+
+EsLint server_api:
+  stage: lint server
+  script:
+    - npm i
+    - npm run server_api-lint
+  rules:
+    - changes:
+        - packages/server-api/*
+E2E server test:
+  stage: testing
+  services:
+    - postgres
+  variables:
+    POSTGRES_DB: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_HOST_AUTH_METHOD: trust
+  image: postgres
+  script:
+    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
+  image: node
+  script:
+    - npm i
+    - npm run test:e2e-gitlab
